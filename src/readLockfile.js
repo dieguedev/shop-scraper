@@ -17,6 +17,25 @@ export function parseLockfile(content) {
   return { processName, processId, port, password, protocol };
 }
 
+export function readLockfileIfExists(lolInstallPath) {
+  const lockfilePath = join(lolInstallPath, LOCKFILE_NAME);
+
+  if (!existsSync(lockfilePath)) {
+    return null;
+  }
+
+  try {
+    const content = readFileSync(lockfilePath, 'utf-8');
+    if (content.trim().length > 0) {
+      return parseLockfile(content);
+    }
+  } catch (err) {
+    console.error('Error al leer lockfile:', err.message);
+  }
+
+  return null;
+}
+
 export function waitForLockfile(lolInstallPath) {
   const lockfilePath = join(lolInstallPath, LOCKFILE_NAME);
 
