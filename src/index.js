@@ -42,21 +42,20 @@ async function main() {
     var { port, password } = lockfileData;
   } else {
     if (riotClientRunning) {
-      console.log('   Riot Client ya está activo (sesión existente).');
-      console.log('1. Lanzando League of Legends directamente...');
-      await launchClient(RIOT_CLIENT_PATH);
-      shouldCloseLol = true;
+      console.log('   Riot Client detectado en segundo plano.');
     } else {
       console.log('   Ningún proceso activo.');
-      console.log('1. Lanzando el Riot Client...');
-      await launchClient(RIOT_CLIENT_PATH);
-      console.log('2. Iniciando sesión (teclado automático)...');
-      await loginWithKeyboard(RIOT_USERNAME, RIOT_PASSWORD);
-      shouldCloseLol = true;
     }
+    
+    console.log('1. Lanzando el Riot Client...');
+    await launchClient(RIOT_CLIENT_PATH);
+    
+    console.log('2. Iniciando sesión (teclado automático)...');
+    await loginWithKeyboard(RIOT_USERNAME, RIOT_PASSWORD);
+    shouldCloseLol = true;
 
     console.log('3. Esperando a que League of Legends arranque...');
-    var { port, password } = await waitForLockfile(LOL_INSTALL_PATH);
+    var { port, password } = await waitForLockfile(LOL_INSTALL_PATH, true);
     console.log(`   Lockfile leído — puerto: ${port}`);
   }
 

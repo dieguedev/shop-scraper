@@ -1,4 +1,4 @@
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, statSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 
 const LOCKFILE_NAME = 'lockfile';
@@ -36,17 +36,36 @@ export function readLockfileIfExists(lolInstallPath) {
   return null;
 }
 
-export function waitForLockfile(lolInstallPath) {
+export function waitForLockfile(lolInstallPath, waitForNew = false) {
   const lockfilePath = join(lolInstallPath, LOCKFILE_NAME);
 
   return new Promise((resolve, reject) => {
     const startTime = Date.now();
+    let initialMtime = null;
+
+    if (waitForNew && existsSync(lockfilePath)) {
+      try {
+        initialMtime = statSync(lockfilePath).mtimeMs;
+        console.log('   Esperando a que el lockfile se actualice...');
+      } catch {
+        // Ignorar error
+      }
+    }
 
     const check = () => {
       if (existsSync(lockfilePath)) {
         try {
           const content = readFileSync(lockfilePath, 'utf-8');
           if (content.trim().length > 0) {
+            if (waitForNew && initialMtime !== null) {
+              const currentMtime = statSync(lockfilePath).mtimeMs;
+              if (currentMtime <= initialMtime) {
+                console.log(`   Lockfile no actualizado aún... (${Math.round((Date.now() - startTime) / 1000)}s)`);
+                setTimeout(check, POLL_INTERVAL_MS);
+                return;
+              }
+            }
+            
             console.log(`Lockfile encontrado en: ${lockfilePath}`);
             return resolve(parseLockfile(content));
           }
