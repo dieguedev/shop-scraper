@@ -1,0 +1,10 @@
+# Python dependencies for Riot Client automation
+# Install with: pip install -r requirements.txt
+
+# Core dependencies (install in order)
+numpy>=1.24.0
+Pillow>=10.0.0
+pyscreeze>=0.1.30
+opencv-python-headless>=4.8.0
+pyautogui==0.9.54
+pygetwindow==0.0.9
