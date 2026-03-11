@@ -14,7 +14,7 @@ export async function upsertSkinSales(supabaseUrl, supabaseKey, skins) {
 
   const { data, error } = await supabase
     .from('skin_sales')
-    .upsert(skins, { onConflict: 'item_id' })
+    .upsert(skins, { onConflict: 'item_id,sale_end_date' })
     .select();
 
   if (error) {

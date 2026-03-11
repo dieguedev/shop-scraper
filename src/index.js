@@ -25,6 +25,7 @@ async function main() {
   }
 
   let shouldCloseLol = false;
+  let error = null;
 
   console.log('0. Verificando estado de procesos...');
   const lolRunning = await isProcessRunning('LeagueClient.exe');
@@ -47,7 +48,7 @@ async function main() {
       console.log('   Ningún proceso activo.');
     }
     
-    console.log('1. Lanzando el Riot Client...');
+    console.log('1. Lanzando el Riot Client y League of Legends...');
     await launchClient(RIOT_CLIENT_PATH);
     
     console.log('2. Iniciando sesión (teclado automático)...');
@@ -59,25 +60,35 @@ async function main() {
     console.log(`   Lockfile leído — puerto: ${port}`);
   }
 
-  console.log('4. Obteniendo datos de la tienda via LCU API...');
-  const storeData = await getStoreFeatured(port, password);
+  try {
+    console.log('4. Obteniendo datos de la tienda via LCU API...');
+    const storeData = await getStoreFeatured(port, password);
 
-  const skins = extractSkinSales(storeData);
-  console.log(`   ${skins.length} skins en oferta encontradas.`);
-  skins.forEach(s => console.log(`   - ${s.name}: ${s.original_rp} → ${s.sale_rp} RP (-${s.percent_off}%)`));
+    const skins = extractSkinSales(storeData);
+    console.log(`   ${skins.length} skins en oferta encontradas.`);
+    skins.forEach(s => console.log(`   - ${s.name}: ${s.original_rp} → ${s.sale_rp} RP (-${s.percent_off}%)`));
 
-  console.log('5. Subiendo datos a Supabase...');
-  await upsertSkinSales(SUPABASE_URL, SUPABASE_KEY, skins);
+    console.log('5. Subiendo datos a Supabase...');
+    await upsertSkinSales(SUPABASE_URL, SUPABASE_KEY, skins);
+  } catch (err) {
+    console.error('Error durante la ejecución:', err.message);
+    error = err;
+  } finally {
+    if (shouldCloseLol) {
+      console.log('6. Cerrando League of Legends (iniciado por el script)...');
+      await killProcess('LeagueClient.exe');
+      await killProcess('RiotClientServices.exe');
+    } else {
+      console.log('6. League se mantiene abierto (estaba activo antes del script).');
+    }
 
-  if (shouldCloseLol) {
-    console.log('6. Cerrando League of Legends (iniciado por el script)...');
-    await killProcess('LeagueClient.exe');
-    await killProcess('RiotClientServices.exe');
-  } else {
-    console.log('6. League se mantiene abierto (estaba activo antes del script).');
+    if (error) {
+      console.log('\n⚠️ El script finalizó con errores.');
+      throw error;
+    }
+
+    console.log('Hecho.');
   }
-
-  console.log('Hecho.');
 }
 
 main().catch((err) => {

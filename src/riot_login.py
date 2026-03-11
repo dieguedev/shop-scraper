@@ -181,7 +181,6 @@ def main():
     username_field_img = assets_dir / "username_field.png"
     password_field_img = assets_dir / "password_field.png"
     login_button_img = assets_dir / "login_button.png"
-    jugar_button_img = assets_dir / "jugar_button.png"
     
     try:
         # Paso 1: Buscar y activar ventana del Riot Client
@@ -214,15 +213,11 @@ def main():
             pyautogui.press('enter')
             time.sleep(CLICK_DELAY)
         
-        # Paso 6: Esperar a que procese el login
-        log(f"Login enviado, esperando {POST_LOGIN_WAIT_SECONDS}s para que cargue la pantalla principal...")
+        # Paso 6: Login completado
+        log(f"Login enviado, esperando {POST_LOGIN_WAIT_SECONDS}s...")
         time.sleep(POST_LOGIN_WAIT_SECONDS)
         
-        # Paso 7: Buscar y hacer click en botón "Jugar"
-        log("Buscando botón 'Jugar'...")
-        click_image(str(jugar_button_img), timeout=15)
-        
-        log("[OK] Proceso completado exitosamente")
+        log("[OK] Login completado exitosamente")
         sys.exit(EXIT_SUCCESS)
         
     except FileNotFoundError as e:
